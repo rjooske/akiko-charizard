@@ -123,48 +123,73 @@
   let nameFilter = $state("");
   let yearFilter = $state<number | undefined>();
   let priorityString = $state("");
+  let showDescription = $state(false);
   let maxVisibleCourseCount = $state(1000);
 
-  let [visibleCourses, maxExceeded, prioritizedCount] = $derived.by(() => {
-    const prefix = idFilterMode === "prefix";
-    const visibleCourses: Course[] = [];
-    let maxExceeded = false;
-    for (const c of courses) {
-      if (
-        !(
-          (prefix ? c.id.startsWith(idFilter) : c.id.includes(idFilter)) &&
-          c.name.includes(nameFilter) &&
-          (yearFilter === undefined || c.year === yearFilter)
-        )
-      ) {
-        continue;
-      }
-      visibleCourses.push(c);
-      if (visibleCourses.length === maxVisibleCourseCount + 1) {
-        visibleCourses.pop();
-        maxExceeded = true;
-        break;
-      }
-    }
-
-    let prioritizedCount: number | undefined;
-    if (priorityString !== "") {
-      sortByKeyCached(
-        visibleCourses,
-        (c) => -courseContainsString(c, priorityString),
-      );
-      prioritizedCount = 0;
-      for (const c of visibleCourses) {
-        if (courseContainsString(c, priorityString)) {
-          prioritizedCount++;
-        } else {
+  let [visibleCourses, visibleCourseIdRowSpans, maxExceeded, prioritizedCount] =
+    $derived.by(() => {
+      const prefix = idFilterMode === "prefix";
+      const visibleCourses: Course[] = [];
+      let maxExceeded = false;
+      for (const c of courses) {
+        if (
+          !(
+            (prefix ? c.id.startsWith(idFilter) : c.id.includes(idFilter)) &&
+            c.name.includes(nameFilter) &&
+            (yearFilter === undefined || c.year === yearFilter)
+          )
+        ) {
+          continue;
+        }
+        visibleCourses.push(c);
+        if (visibleCourses.length === maxVisibleCourseCount + 1) {
+          visibleCourses.pop();
+          maxExceeded = true;
           break;
         }
       }
-    }
 
-    return [visibleCourses, maxExceeded, prioritizedCount];
-  });
+      let prioritizedCount: number | undefined;
+      if (priorityString !== "") {
+        sortByKeyCached(
+          visibleCourses,
+          (c) => -courseContainsString(c, priorityString),
+        );
+        prioritizedCount = 0;
+        for (const c of visibleCourses) {
+          if (courseContainsString(c, priorityString)) {
+            prioritizedCount++;
+          } else {
+            break;
+          }
+        }
+      }
+
+      const duplicateCourseIdCounts: number[] = [];
+      let lastCourseId: string | undefined;
+      for (const c of visibleCourses) {
+        if (lastCourseId !== c.id) {
+          lastCourseId = c.id;
+          duplicateCourseIdCounts.push(0);
+        }
+        duplicateCourseIdCounts[duplicateCourseIdCounts.length - 1]++;
+      }
+
+      const visibleCourseIdRowSpans: number[] = [];
+      for (const count of duplicateCourseIdCounts) {
+        visibleCourseIdRowSpans.push(count);
+        for (let i = 0; i < count - 1; i++) {
+          visibleCourseIdRowSpans.push(0);
+        }
+      }
+
+      return [
+        visibleCourses,
+        visibleCourseIdRowSpans,
+        maxExceeded,
+        prioritizedCount,
+      ];
+    });
 </script>
 
 <h1>
@@ -205,6 +230,11 @@
   {/if}
 </label>
 <br />
+<label>
+  授業概要を表示：
+  <input type="checkbox" bind:checked={showDescription} />
+</label>
+<br />
 <br />
 
 <span>該当授業数：{visibleCourses.length}{maxExceeded ? "以上" : ""}</span>
@@ -217,13 +247,12 @@
 <br />
 <br />
 
-<table>
+<table class={{ "hide-desc": !showDescription }}>
   <thead>
     <tr>
+      <th>科目番号</th>
       <th>
         年度
-        <br />
-        科目番号
         <br />
         科目名
       </th>
@@ -241,7 +270,7 @@
         <br />
         担当教員
       </th>
-      <th>授業概要</th>
+      <th class="desc">授業概要</th>
       {#if prioritizedCount !== undefined}
         <th>優先</th>
       {/if}
@@ -249,13 +278,28 @@
   </thead>
   <tbody>
     {#each visibleCourses as c, i (c.key)}
+      {@const rowSpan = visibleCourseIdRowSpans[i]}
       <tr data-year={c.year}>
+        {#if rowSpan > 0}
+          <td rowspan={rowSpan} class="id">
+            {c.id}
+            <br />
+            <button onclick={() => window.navigator.clipboard.writeText(c.id)}>
+              コピー
+            </button>
+          </td>
+        {/if}
         <td>
           {c.year}
           <br />
-          {c.id}
-          <br />
           {c.name}
+          <br />
+          <button
+            onclick={() => window.navigator.clipboard.writeText(c.name)}
+            style="text-wrap: nowrap;"
+          >
+            科目名コピー
+          </button>
         </td>
         <td>
           {c.credit}
@@ -271,7 +315,7 @@
           <br />
           {c.organizer}
         </td>
-        <td>{c.description}</td>
+        <td class="desc">{c.description}</td>
         {#if prioritizedCount !== undefined}
           <td>{i < prioritizedCount ? "✅" : ""}</td>
         {/if}
@@ -281,6 +325,10 @@
 </table>
 
 <style lang="scss">
+  :global(body) {
+    font-family: sans-serif;
+  }
+
   h1 {
     display: flex;
     align-items: center;
@@ -302,25 +350,21 @@
     border-collapse: collapse;
   }
 
-  th,
-  td {
-    &:nth-child(1) {
-      max-width: 40ch;
-    }
-    &:nth-child(2) {
-      max-width: 10ch;
-    }
-    &:nth-child(3) {
-      max-width: 80ch;
-    }
-  }
-
   th {
     text-wrap: nowrap;
   }
 
-  td:nth-child(4) {
+  td:nth-last-child(1) {
     font-size: 12px;
+  }
+
+  table.hide-desc {
+    & th,
+    & td {
+      &.desc {
+        display: none;
+      }
+    }
   }
 
   tr {
