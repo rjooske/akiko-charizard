@@ -30,16 +30,17 @@
   }
 
   function courseContainsString(c: Course, s: string): boolean {
+    s = s.toLowerCase();
     return (
-      c.id.includes(s) ||
-      c.name.includes(s) ||
-      c.credit.includes(s) ||
-      c.term.includes(s) ||
-      c.when.includes(s) ||
-      c.expects.includes(s) ||
-      c.remark.includes(s) ||
-      c.description.includes(s) ||
-      c.organizer.includes(s)
+      c.id.toLowerCase().includes(s) ||
+      c.name.toLowerCase().includes(s) ||
+      c.credit.toLowerCase().includes(s) ||
+      c.term.toLowerCase().includes(s) ||
+      c.when.toLowerCase().includes(s) ||
+      c.expects.toLowerCase().includes(s) ||
+      c.remark.toLowerCase().includes(s) ||
+      c.description.toLowerCase().includes(s) ||
+      c.organizer.toLowerCase().includes(s)
     );
   }
 
@@ -130,12 +131,16 @@
     $derived.by(() => {
       const prefix = idFilterMode === "prefix";
       const visibleCourses: Course[] = [];
+      const uppercaseIdFilter = idFilter.toUpperCase();
+      const lowercaseNameFilter = nameFilter.toLowerCase();
       let maxExceeded = false;
       for (const c of courses) {
         if (
           !(
-            (prefix ? c.id.startsWith(idFilter) : c.id.includes(idFilter)) &&
-            c.name.includes(nameFilter) &&
+            (prefix
+              ? c.id.startsWith(uppercaseIdFilter)
+              : c.id.includes(uppercaseIdFilter)) &&
+            c.name.toLowerCase().includes(lowercaseNameFilter) &&
             (yearFilter === undefined || c.year === yearFilter)
           )
         ) {
