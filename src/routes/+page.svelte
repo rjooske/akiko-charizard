@@ -301,7 +301,13 @@
         <td>
           {c.year}
           <br />
-          {c.name}
+          <a
+            href="https://kdb.tsukuba.ac.jp/syllabi/{c.year}/{c.id}/jpn"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {c.name}
+          </a>
           <br />
           <button
             onclick={() => window.navigator.clipboard.writeText(c.name)}
