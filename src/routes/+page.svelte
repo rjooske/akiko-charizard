@@ -29,7 +29,11 @@
     }
   }
 
-  function courseContainsString(c: Course, s: string): boolean {
+  function courseContainsString(
+    c: Course,
+    s: string,
+    useDescription: boolean,
+  ): boolean {
     s = s.toLowerCase();
     return (
       c.id.toLowerCase().includes(s) ||
@@ -39,8 +43,8 @@
       c.when.toLowerCase().includes(s) ||
       c.expects.toLowerCase().includes(s) ||
       c.remark.toLowerCase().includes(s) ||
-      c.description.toLowerCase().includes(s) ||
-      c.organizer.toLowerCase().includes(s)
+      c.organizer.toLowerCase().includes(s) ||
+      (useDescription && c.description.toLowerCase().includes(s))
     );
   }
 
@@ -158,11 +162,11 @@
       if (priorityString !== "") {
         sortByKeyCached(
           visibleCourses,
-          (c) => -courseContainsString(c, priorityString),
+          (c) => -courseContainsString(c, priorityString, showDescription),
         );
         prioritizedCount = 0;
         for (const c of visibleCourses) {
-          if (courseContainsString(c, priorityString)) {
+          if (courseContainsString(c, priorityString, showDescription)) {
             prioritizedCount++;
           } else {
             break;
@@ -359,7 +363,7 @@
     text-wrap: nowrap;
   }
 
-  td:nth-last-child(1) {
+  td.desc {
     font-size: 12px;
   }
 
