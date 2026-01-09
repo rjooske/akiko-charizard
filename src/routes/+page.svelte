@@ -4,6 +4,7 @@
   import courses2024Csv from "../courses/2024.csv?raw";
   import courses2025Csv from "../courses/2025.csv?raw";
   import papaparse from "papaparse";
+  import { SvelteSet } from "svelte/reactivity";
 
   type Course = {
     id: string;
@@ -127,7 +128,7 @@
   let idFilterMode = $state<"prefix" | "contain">("prefix");
   let nameFilter = $state("");
   let nameFilterMode = $state<"contain" | "exact">("contain");
-  let yearFilter = $state<number | undefined>();
+  let yearFilter = $state(new SvelteSet([2023, 2024, 2025]));
   let priorityString = $state("");
   let showDescription = $state(false);
   let maxVisibleCourseCount = $state(1000);
@@ -149,7 +150,7 @@
             (nameExact
               ? c.name === nameFilter
               : c.name.toLowerCase().includes(lowercaseNameFilter)) &&
-            (yearFilter === undefined || c.year === yearFilter)
+            yearFilter.has(c.year)
           )
         ) {
           continue;
@@ -228,16 +229,22 @@
   <option value={"exact"}>完全一致</option>
 </select>
 <br />
-<label>
-  年度：
-  <input
-    type="number"
-    oninput={(event) => {
-      const year = parseInt(event.currentTarget.value);
-      yearFilter = isNaN(year) ? undefined : year;
-    }}
-  />
-</label>
+{#each [2023, 2024, 2025] as year}
+  <label class="year">
+    <input
+      type="checkbox"
+      checked={yearFilter.has(year)}
+      onchange={(e) => {
+        if (e.currentTarget.checked) {
+          yearFilter.add(year);
+        } else {
+          yearFilter.delete(year);
+        }
+      }}
+    />
+    {year}年度
+  </label>
+{/each}
 <br />
 <label>
   優先する文字列：
@@ -359,6 +366,12 @@
 
     & > img {
       width: 50px;
+    }
+  }
+
+  label.year {
+    & + & {
+      margin-left: 20px;
     }
   }
 
