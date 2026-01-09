@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from "$app/environment";
   import { assert, sortByKeyCached } from "$lib/util";
   import courses2023Csv from "../courses/2023.csv?raw";
   import courses2024Csv from "../courses/2024.csv?raw";
@@ -204,6 +205,26 @@
         prioritizedCount,
       ];
     });
+
+  let idElement = $state<HTMLElement | undefined>();
+  let nameElement = $state<HTMLElement | undefined>();
+  let priorityStringElement = $state<HTMLElement | undefined>();
+
+  if (browser) {
+    window.addEventListener("keydown", (e) => {
+      if (e.ctrlKey) {
+        if (e.code === "KeyI") {
+          idElement?.focus();
+        }
+        if (e.code === "KeyN") {
+          nameElement?.focus();
+        }
+        if (e.code === "KeyP") {
+          priorityStringElement?.focus();
+        }
+      }
+    });
+  }
 </script>
 
 <h1>
@@ -211,7 +232,8 @@
   <span>あきこリザードン</span>
 </h1>
 
-<label>
+<label bind:this={idElement}>
+  <kbd>Ctrl + I</kbd>
   科目番号：
   <input type="text" bind:value={idFilter} />
 </label>
@@ -220,7 +242,8 @@
   <option value={"contain"}>部分一致</option>
 </select>
 <br />
-<label>
+<label bind:this={nameElement}>
+  <kbd>Ctrl + N</kbd>
   科目名：
   <input type="text" bind:value={nameFilter} />
 </label>
@@ -246,7 +269,8 @@
   </label>
 {/each}
 <br />
-<label>
+<label bind:this={priorityStringElement}>
+  <kbd>Ctrl + P</kbd>
   優先する文字列：
   <input type="text" bind:value={priorityString} />
   {#if priorityString !== "" && maxExceeded}
@@ -367,6 +391,12 @@
     & > img {
       width: 50px;
     }
+  }
+
+  label > kbd {
+    background-color: oklch(92% 0 0);
+    border-radius: 5px;
+    padding: 0 5px;
   }
 
   label.year {
