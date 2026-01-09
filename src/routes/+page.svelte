@@ -126,6 +126,7 @@
   let idFilter = $state("");
   let idFilterMode = $state<"prefix" | "contain">("prefix");
   let nameFilter = $state("");
+  let nameFilterMode = $state<"contain" | "exact">("contain");
   let yearFilter = $state<number | undefined>();
   let priorityString = $state("");
   let showDescription = $state(false);
@@ -133,7 +134,8 @@
 
   let [visibleCourses, visibleCourseIdRowSpans, maxExceeded, prioritizedCount] =
     $derived.by(() => {
-      const prefix = idFilterMode === "prefix";
+      const idPrefix = idFilterMode === "prefix";
+      const nameExact = nameFilterMode === "exact";
       const visibleCourses: Course[] = [];
       const uppercaseIdFilter = idFilter.toUpperCase();
       const lowercaseNameFilter = nameFilter.toLowerCase();
@@ -141,10 +143,12 @@
       for (const c of courses) {
         if (
           !(
-            (prefix
+            (idPrefix
               ? c.id.startsWith(uppercaseIdFilter)
               : c.id.includes(uppercaseIdFilter)) &&
-            c.name.toLowerCase().includes(lowercaseNameFilter) &&
+            (nameExact
+              ? c.name === nameFilter
+              : c.name.toLowerCase().includes(lowercaseNameFilter)) &&
             (yearFilter === undefined || c.year === yearFilter)
           )
         ) {
@@ -219,6 +223,10 @@
   科目名：
   <input type="text" bind:value={nameFilter} />
 </label>
+<select bind:value={nameFilterMode}>
+  <option value={"contain"}>部分一致</option>
+  <option value={"exact"}>完全一致</option>
+</select>
 <br />
 <label>
   年度：
