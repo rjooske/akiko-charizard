@@ -206,21 +206,24 @@
       ];
     });
 
-  let idElement = $state<HTMLElement | undefined>();
-  let nameElement = $state<HTMLElement | undefined>();
-  let priorityStringElement = $state<HTMLElement | undefined>();
+  let idElement = $state<HTMLInputElement | undefined>();
+  let nameElement = $state<HTMLInputElement | undefined>();
+  let priorityStringElement = $state<HTMLInputElement | undefined>();
 
   if (browser) {
     window.addEventListener("keydown", (e) => {
       if (e.ctrlKey) {
         if (e.code === "KeyI") {
-          idElement?.focus();
+          e.preventDefault();
+          idElement?.select();
         }
         if (e.code === "KeyN") {
-          nameElement?.focus();
+          e.preventDefault();
+          nameElement?.select();
         }
         if (e.code === "KeyP") {
-          priorityStringElement?.focus();
+          e.preventDefault();
+          priorityStringElement?.select();
         }
         if (e.code === "KeyY") {
           let s = "";
@@ -244,25 +247,25 @@
   <span>あきこリザードン</span>
 </h1>
 
-<label bind:this={idElement}>
-  <kbd>Ctrl + I</kbd>
+<label>
   科目番号：
-  <input type="text" bind:value={idFilter} />
+  <input type="text" bind:this={idElement} bind:value={idFilter} />
 </label>
 <select bind:value={idFilterMode}>
   <option value={"prefix"}>先頭一致</option>
   <option value={"contain"}>部分一致</option>
 </select>
+<kbd>Ctrl + I</kbd>
 <br />
-<label bind:this={nameElement}>
-  <kbd>Ctrl + N</kbd>
+<label>
   科目名：
-  <input type="text" bind:value={nameFilter} />
+  <input type="text" bind:this={nameElement} bind:value={nameFilter} />
 </label>
 <select bind:value={nameFilterMode}>
   <option value={"contain"}>部分一致</option>
   <option value={"exact"}>完全一致</option>
 </select>
+<kbd>Ctrl + N</kbd>
 <br />
 {#each [2023, 2024, 2025] as year}
   <label class="year">
@@ -281,10 +284,14 @@
   </label>
 {/each}
 <br />
-<label bind:this={priorityStringElement}>
-  <kbd>Ctrl + P</kbd>
+<label>
   優先する文字列：
-  <input type="text" bind:value={priorityString} />
+  <input
+    type="text"
+    bind:this={priorityStringElement}
+    bind:value={priorityString}
+  />
+  <kbd>Ctrl + P</kbd>
   {#if priorityString !== "" && maxExceeded}
     （⚠️ 表示されている{maxVisibleCourseCount}授業のみ並べ替えます）
   {/if}
@@ -405,7 +412,7 @@
     }
   }
 
-  label > kbd {
+  kbd {
     background-color: oklch(92% 0 0);
     border-radius: 5px;
     padding: 0 5px;
