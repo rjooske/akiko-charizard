@@ -222,6 +222,18 @@
         if (e.code === "KeyP") {
           priorityStringElement?.focus();
         }
+        if (e.code === "KeyY") {
+          let s = "";
+          for (let i = 0; i < visibleCourseIdRowSpans.length; i++) {
+            const rowSpan = visibleCourseIdRowSpans[i];
+            if (rowSpan === 0) {
+              continue;
+            }
+            const course = visibleCourses[i + rowSpan - 1];
+            s += course.id + " " + course.name + "\n";
+          }
+          window.navigator.clipboard.writeText(s);
+        }
       }
     });
   }
