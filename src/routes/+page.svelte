@@ -1,6 +1,11 @@
 <script lang="ts">
   import { browser } from "$app/environment";
-  import { assert, sortByKeyCached } from "$lib/util";
+  import {
+    assert,
+    escapeRegExp,
+    sortByKeyCached,
+    unreachable,
+  } from "$lib/util";
   import courses2023Csv from "../courses/2023.csv?raw";
   import courses2024Csv from "../courses/2024.csv?raw";
   import courses2025Csv from "../courses/2025.csv?raw";
@@ -126,7 +131,7 @@
   const courses = loadCourses();
 
   let idFilter = $state("");
-  let idFilterMode = $state<"prefix" | "contain">("prefix");
+  let idFilterMode = $state<"prefix" | "contain" | "regex">("prefix");
   let nameFilter = $state("");
   let nameFilterMode = $state<"contain" | "exact">("contain");
   let yearFilter = $state(new SvelteSet([2023, 2024, 2025]));
@@ -136,18 +141,29 @@
 
   let [visibleCourses, visibleCourseIdRowSpans, maxExceeded, prioritizedCount] =
     $derived.by(() => {
-      const idPrefix = idFilterMode === "prefix";
+      let idPattern: RegExp;
+      switch (idFilterMode) {
+        case "prefix":
+          idPattern = new RegExp("^" + escapeRegExp(idFilter), "i");
+          break;
+        case "contain":
+          idPattern = new RegExp(escapeRegExp(idFilter), "i");
+          break;
+        case "regex":
+          idPattern = new RegExp(idFilter, "i");
+          break;
+        default:
+          unreachable(idFilterMode);
+      }
+
       const nameExact = nameFilterMode === "exact";
       const visibleCourses: Course[] = [];
-      const uppercaseIdFilter = idFilter.toUpperCase();
       const lowercaseNameFilter = nameFilter.toLowerCase();
       let maxExceeded = false;
       for (const c of courses) {
         if (
           !(
-            (idPrefix
-              ? c.id.startsWith(uppercaseIdFilter)
-              : c.id.includes(uppercaseIdFilter)) &&
+            idPattern.test(c.id) &&
             (nameExact
               ? c.name === nameFilter
               : c.name.toLowerCase().includes(lowercaseNameFilter)) &&
@@ -254,6 +270,7 @@
 <select bind:value={idFilterMode}>
   <option value={"prefix"}>先頭一致</option>
   <option value={"contain"}>部分一致</option>
+  <option value={"regex"}>正規表現</option>
 </select>
 <kbd>Ctrl + I</kbd>
 <br />

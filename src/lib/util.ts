@@ -4,6 +4,10 @@ export function assert(b: boolean): asserts b {
   }
 }
 
+export function unreachable(_: never): never {
+  throw new Error("Should be unreachable");
+}
+
 export function sortByKeyCached<T>(ts: T[], getKey: (t: T) => number): void {
   const pairs: [number, T][] = [];
   for (const t of ts) {
@@ -13,4 +17,8 @@ export function sortByKeyCached<T>(ts: T[], getKey: (t: T) => number): void {
   for (let i = 0; i < ts.length; i++) {
     ts[i] = pairs[i][1];
   }
+}
+
+export function escapeRegExp(string: string): string {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
