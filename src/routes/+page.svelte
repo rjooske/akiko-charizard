@@ -137,6 +137,7 @@
   let yearFilter = $state(new SvelteSet([2023, 2024, 2025]));
   let priorityString = $state("");
   let showDescription = $state(false);
+  let showGraduateCourses = $state(false);
   let maxVisibleCourseCount = $state(1000);
 
   let [visibleCourses, visibleCourseIdRowSpans, maxExceeded, prioritizedCount] =
@@ -161,15 +162,16 @@
       const lowercaseNameFilter = nameFilter.toLowerCase();
       let maxExceeded = false;
       for (const c of courses) {
-        if (
-          !(
-            idPattern.test(c.id) &&
-            (nameExact
-              ? c.name === nameFilter
-              : c.name.toLowerCase().includes(lowercaseNameFilter)) &&
-            yearFilter.has(c.year)
-          )
-        ) {
+        if (!showGraduateCourses && c.id.startsWith("0")) {
+          continue;
+        }
+        const matches =
+          idPattern.test(c.id) &&
+          (nameExact
+            ? c.name === nameFilter
+            : c.name.toLowerCase().includes(lowercaseNameFilter)) &&
+          yearFilter.has(c.year);
+        if (!matches) {
           continue;
         }
         visibleCourses.push(c);
@@ -317,6 +319,11 @@
 <label>
   授業概要を表示：
   <input type="checkbox" bind:checked={showDescription} />
+</label>
+<br />
+<label>
+  大学院の授業を表示：
+  <input type="checkbox" bind:checked={showGraduateCourses} />
 </label>
 <br />
 <br />
