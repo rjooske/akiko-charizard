@@ -157,7 +157,7 @@
           unreachable(idFilterMode);
       }
 
-      const nameExact = nameFilterMode === "exact";
+      const nameExact = nameFilterMode === "exact" && nameFilter !== "";
       const visibleCourses: Course[] = [];
       const lowercaseNameFilter = nameFilter.toLowerCase();
       let maxExceeded = false;
