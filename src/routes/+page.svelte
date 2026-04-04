@@ -9,6 +9,7 @@
   import courses2023Csv from "../courses/2023.csv?raw";
   import courses2024Csv from "../courses/2024.csv?raw";
   import courses2025Csv from "../courses/2025.csv?raw";
+  import courses2026Csv from "../courses/2026.csv?raw";
   import papaparse from "papaparse";
   import { SvelteSet } from "svelte/reactivity";
 
@@ -117,6 +118,7 @@
       [courses2023Csv, 2023],
       [courses2024Csv, 2024],
       [courses2025Csv, 2025],
+      [courses2026Csv, 2026],
     ] as const) {
       const cs = parseCoursesCsv(csv, year);
       assert(cs !== undefined);
@@ -134,7 +136,7 @@
   let idFilterMode = $state<"prefix" | "contain" | "regex">("prefix");
   let nameFilter = $state("");
   let nameFilterMode = $state<"contain" | "exact">("contain");
-  let yearFilter = $state(new SvelteSet([2023, 2024, 2025]));
+  let yearFilter = $state(new SvelteSet([2023, 2024, 2025, 2026]));
   let priorityString = $state("");
   let showDescription = $state(false);
   let showGraduateCourses = $state(false);
@@ -286,7 +288,7 @@
 </select>
 <kbd>Ctrl + N</kbd>
 <br />
-{#each [2023, 2024, 2025] as year}
+{#each [2023, 2024, 2025, 2026] as year}
   <label class="year">
     <input
       type="checkbox"
@@ -487,6 +489,9 @@
     }
     &[data-year="2025"] {
       background-color: oklch($l $c 240);
+    }
+    &[data-year="2026"] {
+      background-color: oklch($l $c 60);
     }
   }
 </style>
